@@ -1,0 +1,67 @@
+CAPSTONE TWO - FINAL MODEL METRICS
+Project: Where You Grow Up Matters - Predicting Adult Income for Low-Income Children in the DC Region
+==============================================================================
+
+FINAL MODEL
+  Model type ........... Linear regression (ordinary least squares, no penalty)
+  Library .............. scikit-learn LinearRegression (default settings, fit_intercept=True)
+  Target ............... kfr_pooled_pooled_p25 (mean household income rank, 0-1, of children
+                         raised at the 25th percentile of parent income; measured 2014-2015)
+  Training data ........ 588 census tracts (80% split, random_state=42, stratified by state)
+  Testing data ......... 147 census tracts (20%, used once at the end)
+  Hyperparameters ...... none (plain linear regression has no tuning settings)
+  Why this model ....... Best cross-validated score was the random forest, but linear regression was
+                         within one standard error of it and is simpler and easier to explain.
+
+FINAL MODEL PERFORMANCE
+                                   Cross-validation (training)    Test set (held out)
+  R-squared .................              0.745  (+/- 0.017 SE)          0.833
+  MAE (rank units) ..........             0.0308                     0.0284
+  RMSE (rank units) .........             0.0420                     0.0363
+  MAE in plain words: predictions miss by about 2.8 percentile points of income rank on average (test set).
+
+FEATURES AND COEFFICIENTS (17 predictors, standardized; intercept = 0.4354)
+  Continuous predictors were standardized (mean 0, SD 1) using the training set only.
+  Coefficient = change in predicted income rank per 1 SD of the predictor (state rows: versus DC).
+  Predictor                            Coefficient   Percentile points
+  share_black2010                      -0.0347        -3.47
+  state_VA                             +0.0200        +2.00
+  hhinc_mean2000                       +0.0191        +1.91
+  share_asian2010                      +0.0136        +1.36
+  foreign_share2010                    +0.0127        +1.27
+  jobs_highpay_5mi_2015                -0.0101        -1.01
+  share_hisp2010                       -0.0079        -0.79
+  mail_return_rate2010                 +0.0044        +0.44
+  mean_commutetime2000                 +0.0032        +0.32
+  state_MD                             +0.0030        +0.30
+  singleparent_share2010               -0.0029        -0.29
+  poor_share2010                       -0.0027        -0.27
+  traveltime15_2010                    -0.0013        -0.13
+  emp2000                              -0.0012        -0.12
+  frac_coll_plus2010                   -0.0009        -0.09
+  log_job_density_2013                 -0.0008        -0.08
+  log_popdensity2010                   +0.0003        +0.03
+
+MODEL COMPARISON (all models; chosen by cross-validation on training data only)
+  Model                 CV R2   CV SE   CV MAE   CV RMSE   Test R2  Test MAE  Test RMSE  Tuned settings
+  Baseline (average)   -0.029   0.010   0.0713    0.0845   -0.001    0.0760     0.0888  none (predicts the training average)
+  Linear regression     0.745   0.017   0.0308    0.0420    0.833    0.0284     0.0363  none
+  Ridge regression      0.747   0.015   0.0305    0.0419    0.826    0.0289     0.0370  alpha = 29.82 (chosen by cross-validation)
+  Lasso regression      0.749   0.015   0.0304    0.0417    0.829    0.0286     0.0367  alpha = 0.00045 (chosen by cross-validation)
+  Random forest         0.757   0.014   0.0290    0.0411    0.846    0.0274     0.0349  n_estimators=200, max_depth=None, max_features=0.33, min_samples_leaf=5
+
+MODEL SELECTION RULE
+  One-standard-error rule: pick the simplest model whose cross-validated R-squared is within one
+  standard error of the best model. Best = Random forest (0.757, SE 0.014), cutoff = 0.743; linear,
+  ridge, lasso and the forest were all at or above the cutoff, so the simplest (linear) was chosen.
+  Cross-validation: 5-fold on the training set; ridge, lasso and the forest tuned inside each fold.
+
+ADDITIONAL CHECKS
+  Test R2 without the state dummies .......... 0.824 (with them: 0.833)
+  Average test error by state (percentile pts)  DC 2.7, MD 2.4, VA 3.2
+  Average test error, lower vs upper half of predictions: 2.5 vs 3.2 percentile points
+  Bottom-quartile screening: 89% of the test tracts in the actual bottom quartile were also in the model's bottom quartile
+
+LIMITATIONS
+  Small sample (735 tracts); estimates are noisier for tracts with few children; outcomes are for children
+  born 1978-1983 while predictors describe 2000-2015; results are associations, not cause and effect.
